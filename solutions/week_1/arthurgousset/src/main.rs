@@ -1,8 +1,10 @@
 use primes::{PrimeSet, Sieve};
+use num_bigint::BigUint;
+use num_traits::{One, Zero};
 
 fn main() {
     let (p, q) = generate_prime_numbers();
-    let _n = p * q; // the "modulus"
+    let n = p * q; // the "modulus"
     let k = (p - 1) * (q - 1); // the "totient"
     let e = 65537 as u64; // the "public exponent"
 
@@ -16,11 +18,17 @@ fn main() {
             std::process::exit(1); // Exit with error code
         }
     };
-
     println!(
         "The modular multiplicative inverse of {} mod {} is {}",
         e, k, d
     );
+
+    let public_key = (n, e);
+    let _private_key = (n, d);
+
+    let message = "Hello, world!";
+    let encrypted_message = encrypt_message(message, public_key);
+    println!("Encrypted message: {:?}", encrypted_message);
 }
 
 fn generate_prime_numbers() -> (u64, u64) {
@@ -60,4 +68,35 @@ fn modular_multiplicative_inverse(e: u64, k: u64) -> Option<u64> {
     }
 
     Some(d as u64)
+}
+
+fn encrypt_message(message: &str, public_key: (u64, u64)) -> Vec<u64> {
+    let (n, e) = public_key;
+    let mut encrypted_message = Vec::new();
+
+    for char in message.chars() {
+        let m = char as u64; // Convert the character to its ASCII value
+        let c = mod_exp(m, e, n); // Encrypt the ASCII value
+        encrypted_message.push(c);
+    }
+
+    encrypted_message
+}
+
+// Helper function for modular exponentiation
+fn mod_exp(base: u64, exp: u64, modulus: u64) -> u64 {
+  let mut result = BigUint::one();
+  let mut base = BigUint::from(base);
+  let modulus = BigUint::from(modulus);
+  let mut exp = BigUint::from(exp);
+
+  while !exp.is_zero() {
+      if &exp % 2u8 == BigUint::one() {
+          result = (result * &base) % &modulus;
+      }
+      exp >>= 1;
+      base = (&base * &base) % &modulus;
+  }
+
+  result.to_u64_digits()[0] // Convert BigUint back to u64
 }
