@@ -24,11 +24,15 @@ fn main() {
     );
 
     let public_key = (n, e);
-    let _private_key = (n, d);
+    let private_key = (n, d);
 
     let message = "Hello, world!";
+
     let encrypted_message = encrypt_message(message, public_key);
     println!("Encrypted message: {:?}", encrypted_message);
+
+    let decrypted_message = decrypt_message(encrypted_message, private_key);
+    println!("Decrypted message: {}", decrypted_message);
 }
 
 fn generate_prime_numbers() -> (u64, u64) {
@@ -81,6 +85,19 @@ fn encrypt_message(message: &str, public_key: (u64, u64)) -> Vec<u64> {
     }
 
     encrypted_message
+}
+
+fn decrypt_message(ciphertext: Vec<u64>, private_key: (u64, u64)) -> String {
+  let (n, d) = private_key;
+  let mut decrypted_message = String::new();
+
+  for &c in ciphertext.iter() {
+      let m = mod_exp(c, d, n); // Decrypt each encrypted number
+      let char = std::char::from_u32(m as u32).unwrap(); // Convert the number back to a character
+      decrypted_message.push(char);
+  }
+
+  decrypted_message
 }
 
 // Helper function for modular exponentiation
