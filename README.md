@@ -68,6 +68,19 @@ To add your solution for a new week:
 > For context: The `--bin` flag specifies that the new project is a binary crate (i.e., it contains
 > an executable). Without this flag, Cargo would create a library crate by default.
 
+## Version Control
+
+To keep the repository clean and organized, I propose the following guidelines:
+
+1. Create a branch for each new week: `{{username}}/week_{{number}}/` (e.g. `arthurgousset/week_1`).
+    ```sh
+    $ git checkout -b {{username}}/week_{{number}}
+    ```
+2. Commit your changes to the branch.
+3. Open a pull request to merge your branch into `main` when you're ready to submit your solution.
+
+This ensures that each solution is isolated and can be reviewed independently.
+
 <!-- References -->
 
 [tonk-curriculum]:
