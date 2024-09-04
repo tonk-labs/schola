@@ -1,3 +1,9 @@
+use primes::{PrimeSet, Sieve};
+
 fn main() {
-    println!("This is Arthur's Week 1 Solution");
+    let mut pset = Sieve::new();
+
+    for (ix, n) in pset.iter().enumerate().take(10) {
+        println!("Prime {}: {}", ix, n);
+    }
 }
