@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 primes = "0.4"
+num-bigint = "0.4"
+num-traits = "0.2"
