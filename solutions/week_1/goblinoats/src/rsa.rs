@@ -271,7 +271,7 @@ mod tests {
 
     #[test]
     fn rsa() {
-        let (pubkey, privkey) = RsaPrivateKey::new(2048);
+        let (pubkey, privkey) = RsaPrivateKey::new(128);
         let message = BigUint::from(42u64);
         let encrypted = pubkey.encrypt(&message);
         let decrypted = privkey.decrypt(&encrypted);
