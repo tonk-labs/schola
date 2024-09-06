@@ -21,21 +21,6 @@ fn main() {
     println!("Decrypted message: {}", decrypted_message);
 }
 
-/// Generates and returns two large prime numbers.
-///
-/// This function utilizes a sieve to generate prime numbers. The naive algorithm takes 
-/// the first two primes after an index that is randomly chosen in the range [0, 1000000].
-///
-/// # Returns
-///
-/// A tuple `(u64, u64)` containing two large prime numbers `p` and `q`.
-///
-/// # Examples
-///
-/// ```
-/// let (p, q) = generate_prime_numbers();
-/// println!("Generated primes: p = {}, q = {}", p, q);
-/// ```
 fn generate_prime_numbers() -> (u64, u64) {
     let mut pset = Sieve::new();
     let seed = rand::thread_rng().gen_range(1..1000001);
@@ -46,7 +31,6 @@ fn generate_prime_numbers() -> (u64, u64) {
     (p, q)
 }
 
-// TODO: Add docstring
 fn generate_keys(p: u64, q: u64) -> ((u64, u64), (u64, u64)) {
     let n = p * q; // the "modulus"
     let k = (p - 1) * (q - 1); // the "totient"
@@ -70,7 +54,6 @@ fn generate_keys(p: u64, q: u64) -> ((u64, u64), (u64, u64)) {
     (public_key, private_key)
 }
 
-// TODO: Add docstring
 fn encrypt_message(message: &str, public_key: (u64, u64)) -> Vec<u64> {
     let (n, e) = public_key;
     let mut encrypted_message = Vec::new();
@@ -84,7 +67,6 @@ fn encrypt_message(message: &str, public_key: (u64, u64)) -> Vec<u64> {
     encrypted_message
 }
 
-// TODO: Add docstring
 fn decrypt_message(ciphertext: Vec<u64>, private_key: (u64, u64)) -> String {
     let (n, d) = private_key;
     let mut decrypted_message = String::new();
@@ -98,7 +80,6 @@ fn decrypt_message(ciphertext: Vec<u64>, private_key: (u64, u64)) -> String {
     decrypted_message
 }
 
-// TODO: Add docstring
 /// Helper function to calculate GCD.
 fn extended_gcd(a: i64, b: i64) -> (i64, i64, i64) {
     if a == 0 {
@@ -109,7 +90,6 @@ fn extended_gcd(a: i64, b: i64) -> (i64, i64, i64) {
     }
 }
 
-// TODO: Add docstring
 /// Helper function to calculate modular multiplicative inverse.
 fn modular_multiplicative_inverse(e: u64, k: u64) -> Option<u64> {
     let (gcd, x, _) = extended_gcd(e as i64, k as i64);
@@ -129,7 +109,6 @@ fn modular_multiplicative_inverse(e: u64, k: u64) -> Option<u64> {
     Some(d as u64)
 }
 
-// TODO: Add docstring
 /// Helper function for modular exponentiation
 fn mod_exp(base: u64, exp: u64, modulus: u64) -> u64 {
     let mut result = BigUint::one();
