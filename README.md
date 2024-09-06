@@ -42,13 +42,13 @@ To add your solution for a new week:
 1. Initialize a project for the specific week and your username:
 
    ```sh
-   $ cargo new --bin solutions/week_{{number}}/{{username}}
+   $ cargo new --bin solutions/week_{{number}}/{{username}} --vcs none
    ```
 
    For example:
 
    ```sh
-   $ cargo new --bin solutions/week_1/arthurgousset
+   $ cargo new --bin solutions/week_1/arthurgousset --vcs none
    ```
 
 1. Write your solution code inside the generated `src/main.rs` file
@@ -65,8 +65,13 @@ To add your solution for a new week:
    ```
 
 > [!NOTE]  
-> For context: The `--bin` flag specifies that the new project is a binary crate (i.e., it contains
-> an executable). Without this flag, Cargo would create a library crate by default.
+> For context:
+>
+> 1. the `--bin` flag specifies that the new project is a binary crate (i.e., it contains an
+>    executable). Without this flag, Cargo would create a library crate by default.
+> 2. the `--vcs none` flag specifies that the new project should not be initialized with version
+>    control. We're managing version control at the repository level, so we don't need it at the
+>    project level.
 
 ## Version Control
 
