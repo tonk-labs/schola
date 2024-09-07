@@ -1,60 +1,41 @@
 use num_bigint::{BigInt, BigUint, RandBigInt, ToBigInt};
-use num_traits::{One, Signed, Zero};
-use rand::thread_rng;
+use num_integer::Integer;
+use num_traits::{One, Zero};
+use rand::prelude::*;
+use rayon::prelude::*;
+use std::sync::Arc;
+
+const SMALL_PRIMES: [u32; 12] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
 
 fn generate_prime(bits: u64) -> BigUint {
     let mut rng = thread_rng();
     loop {
         let n: BigUint = rng.gen_biguint(bits);
-        if is_prime(&n, 20) {
+        if n.is_odd() && is_prime(&n) {
             return n;
         }
     }
-}
-
-fn mod_pow(base: &BigUint, exp: &BigUint, modulus: &BigUint) -> BigUint {
-    let mut result = BigUint::one();
-    let mut base = base.clone();
-    let mut exp = exp.clone();
-    let zero = BigUint::zero();
-    let two = BigUint::from(2u32);
-
-    while exp > zero {
-        if &exp % &two == BigUint::one() {
-            result = (&result * &base) % modulus;
-        }
-        exp >>= 1;
-        base = (&base * &base) % modulus;
-    }
-    result
 }
 
 fn miller_rabin_test(n: &BigUint, a: &BigUint) -> bool {
     if *n == BigUint::from(2u32) {
         return true;
     }
-    if n % 2u32 == BigUint::zero() {
+    if n.is_even() {
         return false;
     }
 
-    let one = BigUint::one();
-    let two = BigUint::from(2u32);
-    let n_minus_one = n - &one;
+    let n_minus_one = n - 1u32;
+    let s = n_minus_one.trailing_zeros().unwrap();
+    let d = &n_minus_one >> s;
 
-    let mut r = 0u32;
-    let mut s = n_minus_one.clone();
-    while &s % &two == BigUint::zero() {
-        r += 1;
-        s >>= 1;
-    }
-
-    let mut x = mod_pow(a, &s, n);
-    if x == one || x == n_minus_one {
+    let mut x = a.modpow(&d, n);
+    if x == BigUint::one() || x == n_minus_one {
         return true;
     }
 
-    for _ in 0..r - 1 {
-        x = mod_pow(&x, &two, n);
+    for _ in 0..s - 1 {
+        x = (&x * &x) % n;
         if x == n_minus_one {
             return true;
         }
@@ -63,57 +44,60 @@ fn miller_rabin_test(n: &BigUint, a: &BigUint) -> bool {
     false
 }
 
-fn is_prime(n: &BigUint, k: u32) -> bool {
-    if *n < BigUint::from(2u32) {
-        return false;
-    }
-
-    let mut rng = thread_rng();
-
-    for _ in 0..k {
-        let a = rng.gen_biguint_range(&BigUint::from(2u32), &(n - 1u32));
-        if !miller_rabin_test(n, &a) {
+fn is_prime(n: &BigUint) -> bool {
+    for &p in &SMALL_PRIMES {
+        if *n == p.into() {
+            return true;
+        }
+        if n % p == BigUint::zero() {
             return false;
         }
     }
 
-    true
+    if n < &BigUint::from(2047u32) {
+        return miller_rabin_test(n, &BigUint::from(2u32));
+    }
+
+    let bases: Arc<Vec<BigUint>> = Arc::new(
+        if n.bits() < 64 {
+            vec![2u32, 3, 5, 7, 11, 13, 17]
+        } else if n.bits() < 128 {
+            vec![2u32, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37]
+        } else {
+            vec![2u32, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
+        }
+        .into_iter()
+        .map(BigUint::from)
+        .collect::<Vec<BigUint>>(),
+    );
+
+    bases.par_iter().all(|b| miller_rabin_test(n, b))
 }
 
 fn mod_inverse(a: &BigUint, m: &BigUint) -> Option<BigUint> {
     let a = a.to_bigint().unwrap();
     let m = m.to_bigint().unwrap();
-    let mut t = BigInt::zero();
-    let mut newt = BigInt::one();
-    let mut r = m.clone();
-    let mut newr = a;
+    let (mut t, mut newt) = (BigInt::zero(), BigInt::one());
+    let (mut r, mut newr) = (m.clone(), a);
 
     while !newr.is_zero() {
         let quotient = &r / &newr;
-        let temp_t = t - &quotient * &newt;
-        t = std::mem::replace(&mut newt, temp_t);
-
-        let temp_r = &r - &quotient * &newr;
-        r = std::mem::replace(&mut newr, temp_r);
+        (t, newt) = (newt.clone(), t - &quotient * &newt);
+        (r, newr) = (newr.clone(), r - &quotient * &newr);
     }
 
     if r > BigInt::one() {
         None
     } else {
-        let mut result = if t.is_negative() { t + &m } else { t };
-        while result < BigInt::zero() {
-            result += &m;
+        while t < BigInt::zero() {
+            t += &m;
         }
-        while result >= m {
-            result -= &m;
-        }
-        Some(result.to_biguint().unwrap())
+        Some((t % &m).to_biguint().unwrap())
     }
 }
 
 fn generate_keypair() -> (BigUint, BigUint, BigUint) {
-    let p = generate_prime(1024);
-    let q = generate_prime(1024);
+    let (p, q) = rayon::join(|| generate_prime(1024), || generate_prime(1024));
     let n = &p * &q;
     let phi = (&p - 1u32) * (&q - 1u32);
     let e = BigUint::from(65537u32);
