@@ -6,7 +6,14 @@ fn main() {
     let shares = 3;
 
     let prime = generate_prime_number_greater_than(secret);
-    let _polynomial_coefficients = generate_polynomial(secret, shares, prime);
+    let polynomial_coefficients = generate_polynomial(secret, shares, prime);
+
+    let x: u64 = 59; // A random integer I chose manually for simplicity
+    println!(
+        "Evaluate polynomial, at x: {}, y: {}",
+        x,
+        evaluate_polynomial(&polynomial_coefficients, x, prime)
+    )
 }
 
 fn generate_prime_number_greater_than(lower_bound: u64) -> u64 {
@@ -40,4 +47,13 @@ fn generate_polynomial(secret: u64, shares: u64, prime: u64) -> Vec<u64> {
     println!("Polynomial coefficients are: {:?}", coefficients);
 
     coefficients
+}
+
+fn evaluate_polynomial(coefficients: &[u64], x: u64, prime: u64) -> u64 {
+    let mut y = 0;
+    for (i, &coefficient) in coefficients.iter().enumerate() {
+        y += coefficient * x.pow(i.try_into().unwrap());
+        y %= prime; // Calculate modulo prime to ensure values stay in the finite field
+    }
+    y
 }
