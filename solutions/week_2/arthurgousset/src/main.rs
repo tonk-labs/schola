@@ -30,10 +30,11 @@ fn generate_polynomial(secret: u64, shares: u64, prime: u64) -> Vec<u64> {
     coefficients.push(secret);
 
     // Generate random coefficients for the remaining terms
+    let mut rng = rand::thread_rng();
     for _ in 1..shares {
-        // TODO: Prime should be used to perform modular operations over a finite field, not a range. 
-        let random_coeff = rand::thread_rng().gen_range(0..prime); 
-        coefficients.push(random_coeff);
+        // Generate a random number in the range [0, prime)
+        let random_coefficient = rng.gen_range(0..prime);
+        coefficients.push(random_coefficient);
     }
 
     println!("Polynomial coefficients are: {:?}", coefficients);
