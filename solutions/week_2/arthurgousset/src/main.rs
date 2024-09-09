@@ -6,14 +6,8 @@ fn main() {
     let shares = 3;
 
     let prime = generate_prime_number_greater_than(secret);
-    let polynomial_coefficients = generate_polynomial(secret, shares, prime);
-
-    let x: u64 = 59; // A random integer I chose manually for simplicity
-    println!(
-        "Evaluate polynomial, at x: {}, y: {}",
-        x,
-        evaluate_polynomial(&polynomial_coefficients, x, prime)
-    )
+    let secret_shares = generate_secret_shares(secret, shares, prime);
+    println!("Secret shares: {:?}", secret_shares);
 }
 
 fn generate_prime_number_greater_than(lower_bound: u64) -> u64 {
@@ -29,16 +23,16 @@ fn generate_prime_number_greater_than(lower_bound: u64) -> u64 {
     prime
 }
 
-fn generate_polynomial(secret: u64, shares: u64, prime: u64) -> Vec<u64> {
+fn generate_polynomial(secret: u64, nr_shares: u64, prime: u64) -> Vec<u64> {
     // TODO: prime should be BigInt
-    let mut coefficients = Vec::with_capacity(shares as usize);
+    let mut coefficients = Vec::with_capacity(nr_shares as usize);
 
     // The first coefficient of the polynomial is the secret
     coefficients.push(secret);
 
     // Generate random coefficients for the remaining terms
     let mut rng = rand::thread_rng();
-    for _ in 1..shares {
+    for _ in 1..nr_shares {
         // Generate a random number in the range [0, prime)
         let random_coefficient = rng.gen_range(0..prime);
         coefficients.push(random_coefficient);
@@ -56,4 +50,20 @@ fn evaluate_polynomial(coefficients: &[u64], x: u64, prime: u64) -> u64 {
         y %= prime; // Calculate modulo prime to ensure values stay in the finite field
     }
     y
+}
+
+fn generate_secret_shares(
+    secret: u64,
+    nr_shares: u64,
+    prime: u64,
+) -> Vec<(u64, u64)> {
+    let polynomial_coefficients = generate_polynomial(secret, nr_shares, prime);
+    let mut secret_shares: Vec<(u64, u64)> = Vec::with_capacity(nr_shares as usize);
+    
+    for i in 1..nr_shares {
+      let x = i;
+      let y = evaluate_polynomial(&polynomial_coefficients, x, prime);
+      secret_shares.push((x, y));
+    }
+    secret_shares
 }
