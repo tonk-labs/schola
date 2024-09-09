@@ -31,7 +31,8 @@ fn generate_polynomial(secret: u64, shares: u64, prime: u64) -> Vec<u64> {
 
     // Generate random coefficients for the remaining terms
     for _ in 1..shares {
-        let random_coeff = rand::thread_rng().gen_range(0..prime);
+        // TODO: Prime should be used to perform modular operations over a finite field, not a range. 
+        let random_coeff = rand::thread_rng().gen_range(0..prime); 
         coefficients.push(random_coeff);
     }
 
