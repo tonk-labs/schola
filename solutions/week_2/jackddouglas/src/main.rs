@@ -5,6 +5,15 @@ use rand::thread_rng;
 // a large prime number (2^521 - 1)
 const PRIME: &str = "6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057151";
 
+/// Computes (base^exp) % modulus using the modular exponentiation algorithm.
+///
+/// # Arguments
+/// * `base` - The base of the exponentiation
+/// * `exp` - The exponent
+/// * `modulus` - The modulus for the operation
+///
+/// # Returns
+/// The result of (base^exp) % modulus as a BigUint
 fn mod_pow(base: &BigUint, exp: &BigUint, modulus: &BigUint) -> BigUint {
     let mut result = BigUint::one();
     let mut base = base.clone();
@@ -19,7 +28,17 @@ fn mod_pow(base: &BigUint, exp: &BigUint, modulus: &BigUint) -> BigUint {
     result
 }
 
-// helper function: modular inverse using extended Euclidian algorithm
+/// Computes the modular multiplicative inverse of 'a' modulo 'm' using the extended Euclidean algorithm.
+///
+/// # Arguments
+/// * `a` - The number to find the inverse for
+/// * `m` - The modulus
+///
+/// # Returns
+/// The modular multiplicative inverse of 'a' modulo 'm' as a BigInt
+///
+/// # Panics
+/// Panics if 'a' is not invertible modulo 'm'
 fn mod_inverse(a: &BigInt, m: &BigInt) -> BigInt {
     let mut t = BigInt::zero();
     let mut new_t = BigInt::one();
@@ -43,7 +62,15 @@ fn mod_inverse(a: &BigInt, m: &BigInt) -> BigInt {
     t
 }
 
-// generate shares
+/// Generates Shamir's Secret Sharing scheme shares for a given secret.
+///
+/// # Arguments
+/// * `secret` - The secret to be shared
+/// * `num_shares` - The total number of shares to generate
+/// * `threshold` - The minimum number of shares required to reconstruct the secret
+///
+/// # Returns
+/// A vector of tuples, where each tuple contains a share ID and its corresponding value
 fn generate_shares(
     secret: &BigUint,
     num_shares: usize,
@@ -69,7 +96,14 @@ fn generate_shares(
         .collect()
 }
 
-// reconstruct the secret
+/// Reconstructs the secret from a set of Shamir's Secret Sharing scheme shares.
+///
+/// # Arguments
+/// * `shares` - A slice of tuples, where each tuple contains a share ID and its corresponding value
+/// * `threshold` - The number of shares used for reconstruction (must match the threshold used in generation)
+///
+/// # Returns
+/// The reconstructed secret as a BigUint
 fn reconstruct_secret(shares: &[(BigUint, BigUint)], threshold: usize) -> BigUint {
     let prime = BigUint::parse_bytes(PRIME.as_bytes(), 10).unwrap();
     let prime_int = prime.to_bigint().unwrap();
@@ -102,6 +136,13 @@ fn reconstruct_secret(shares: &[(BigUint, BigUint)], threshold: usize) -> BigUin
     secret.to_biguint().unwrap()
 }
 
+/// The main function that demonstrates the usage of Shamir's Secret Sharing scheme.
+///
+/// This function:
+/// 1. Creates a secret
+/// 2. Generates shares for the secret
+/// 3. Reconstructs the secret from a subset of shares
+/// 4. Compares the reconstructed secret with the original
 fn main() {
     let secret = BigUint::parse_bytes(b"123456789012345678901234567890", 10).unwrap();
     let num_shares = 5;
@@ -121,4 +162,3 @@ fn main() {
         reconstructed_secret == secret
     );
 }
-
