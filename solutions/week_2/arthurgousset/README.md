@@ -14,4 +14,9 @@ Difference between `&[u64]` (borrowed slice) and `Vec<u64>` (owned vector).
 
 ### Limitations
 
+1. I'm working with small primes. To work with larger primes, I'd need to use `BigInt` from
+   `num-bigint`.
+
 ## Theory
+
+$S = \sum_{j=1}^{t} y_j \prod_{1 \leq m \leq t, m \neq j} \frac{x_m}{x_m - x_j} \mod p$
