@@ -4,10 +4,10 @@ use primes::{PrimeSet, Sieve};
 use rand::prelude::*;
 
 fn main() {
-    let secret = 42; // A random integer I chose manually for simplicity
+    let secret = 1559; // A random integer I chose manually for simplicity
     println!("Secret is: {}", secret);
 
-    let shares = 3;
+    let shares = 6;
     println!("Number of shares are: {}", shares);
 
     let prime = generate_prime_number_greater_than(secret);
