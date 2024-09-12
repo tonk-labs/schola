@@ -43,6 +43,8 @@ Difference between `&[u64]` (borrowed slice) and `Vec<u64>` (owned vector).
 
 ## Theory
 
+Source: ChatGPT
+
 ### TLDR on Shamir's Secret Sharing
 
 #### Theory Perspective
