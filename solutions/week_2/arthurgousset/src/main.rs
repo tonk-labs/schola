@@ -64,7 +64,7 @@ fn generate_secret_shares(secret: u64, nr_shares: u64, prime: u64) -> Vec<(u64, 
     let polynomial_coefficients = generate_polynomial(secret, nr_shares, prime);
     let mut secret_shares: Vec<(u64, u64)> = Vec::with_capacity(nr_shares as usize);
 
-    for i in 1..nr_shares {
+    for i in 1..nr_shares+1 {
         let x = i;
         let y = evaluate_polynomial(&polynomial_coefficients, x, prime);
         secret_shares.push((x, y));
