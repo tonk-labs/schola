@@ -145,8 +145,8 @@ fn reconstruct_secret(shares: &[(BigUint, BigUint)], threshold: usize) -> BigUin
 /// 4. Compares the reconstructed secret with the original
 fn main() {
     let secret = BigUint::parse_bytes(b"123456789012345678901234567890", 10).unwrap();
-    let num_shares = 5;
-    let threshold = 3;
+    let num_shares = 450;
+    let threshold = 400;
 
     let shares = generate_shares(&secret, num_shares, threshold);
     println!("Shares:");
