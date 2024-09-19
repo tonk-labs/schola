@@ -1,0 +1,31 @@
+[package]
+name = "week_3"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies.ark-bls12-381]
+version = "0.4.0"
+
+[dependencies.ark-ec]
+version = "0.4.2"
+
+[dependencies.ark-ff]
+version = "=0.4.2"
+
+[dependencies.ark-poly]
+version = "0.4.2"
+
+[dependencies.ark-std]
+version = "0.4.0"
+
+[dependencies.ark-test-curves]
+version = "0.4.2"
+
+[dependencies.derive_more]
+version = "0.99.17"
+
+[dependencies.num-bigint]
+version = "0.4.6"
+
+[dependencies.rand]
+version = "0.8.5"
