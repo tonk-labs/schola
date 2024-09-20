@@ -36,10 +36,12 @@ Reconstructed secret: 1559
 
 Difference between `&[u64]` (borrowed slice) and `Vec<u64>` (owned vector).
 
-### Limitations
+### Improvements
 
-1. I'm working with small primes. To work with larger primes, I'd need to use `BigInt` from
-   `num-bigint`.
+1. The prime number does not have to be randomly generated. In fact, it can be publicly known. I can
+   simply use a large known prime number. I can hardcode it at the start.
+2. The operations should be performed with `BigInt` using the large prime number.
+3. I should introduce a distinction between the shares and the threshold.
 
 ## Theory
 
