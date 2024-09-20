@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
-    "solutions/week_1/arthurgousset",
-    "solutions/week_2/arthurgousset",
+  "solutions/week_1/arthurgousset",
+  "solutions/week_2/arthurgousset",
+  "solutions/week_3/jackddouglas",
 ]
