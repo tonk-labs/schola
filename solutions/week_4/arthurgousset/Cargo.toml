@@ -1,6 +1,7 @@
 [package]
-name = "week_4"
+name = "week_4_arthurgousset"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+aes = "0.8.2"
