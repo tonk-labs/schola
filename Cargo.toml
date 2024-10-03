@@ -4,6 +4,7 @@ resolver = "2"
 
 members = [
   "solutions/week_1/arthurgousset",
+  "solutions/week_4/goblinoats",
   "solutions/week_2/arthurgousset",
   "solutions/week_3/arthurgousset",
   "solutions/week_3/jackddouglas",
