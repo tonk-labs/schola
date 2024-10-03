@@ -1,5 +1,7 @@
 [workspace]
 
+resolver = "2"
+
 members = [
   "solutions/week_1/arthurgousset",
   "solutions/week_2/arthurgousset",
