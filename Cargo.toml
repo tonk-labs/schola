@@ -10,5 +10,6 @@ members = [
   "solutions/week_3/jackddouglas",
   "solutions/week_4/arthurgousset",
   "solutions/week_4/jackddouglas",
-  "solutions/week_5/arthurgousset",
+  "solutions/week_5/arthurgousset", 
+  "solutions/week_5/goblinoats", 
 ]
