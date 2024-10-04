@@ -1,10 +1,15 @@
 mod network;
 mod ot;
+mod config;
 
 use std::env;
+use config::Settings;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let settings = Settings::new()?;
+    let server_url = settings.server.url;
+
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 2 {
@@ -21,7 +26,7 @@ async fn main() {
             println!("Starting client...");
             let client = network::Client::new(
                 "client1".to_string(),
-                "http://localhost:3030".to_string(),
+                server_url,
             );
 
             println!("Enter a number for the OT protocol:");
@@ -39,6 +44,8 @@ async fn main() {
             std::process::exit(1);
         }
     }
+
+    Ok(())
 }
 
 // fn main_OT() {
