@@ -1,0 +1,11 @@
+[package]
+name = "goblinoats-ot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aes-gcm = "0.10.3"
+num-bigint = { version = "0.4.6", features = ["rand"] }
+num-traits = "0.2.19"
+rand = "0.8.5"
+sha2 = "0.10.8"
