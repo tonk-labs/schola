@@ -9,20 +9,28 @@ fn main() {
     let bits = 512; // Bit length of RSA modulus n
     let (n, e, d) = generate_rsa_keys(bits);
 
+    let text = "Vote for Alice";
+    println!("Text: {}", text);
+
     // Message to be signed
-    let message = BigUint::from_bytes_be(b"Hello, world!");
+    let message = BigUint::from_bytes_be(text.as_bytes());
+    println!("Message: {}", message);
 
     // Blinding factor and blinded message
     let (blinded_message, r) = blind_message(&message, &e, &n);
+    println!("Blinded message: {}", blinded_message);
 
     // Signer signs the blinded message
     let blinded_signature = rsa_sign(&blinded_message, &d, &n);
+    println!("Blinded signature: {}", blinded_signature);
 
     // Unblind the signature to get the valid signature on the original message
     let signature = unblind_signature(&blinded_signature, &r, &n);
+    println!("Signature: {}", signature);
 
     // Verify the signature
     let is_valid = rsa_verify(&message, &signature, &e, &n);
+    println!("Expected message: {}", message);
 
     println!("Signature valid: {}", is_valid);
 }
