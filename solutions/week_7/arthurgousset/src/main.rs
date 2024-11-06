@@ -2,6 +2,10 @@ use num_bigint::BigInt;
 use num_traits::{One, Zero};
 use rand::Rng;
 
+// Uses Plonk by Hand tutorials
+// 1. https://research.metastate.dev/plonk-by-hand-part-1/
+// 2. https://research.metastate.dev/plonk-by-hand-part-2-the-proof/
+
 /// Prime modulus
 const PRIME: i32 = 101;
 
