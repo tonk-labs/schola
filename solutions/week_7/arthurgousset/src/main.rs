@@ -83,6 +83,33 @@ fn compute_polynomial_coefficients(
     coefficients
 }
 
+fn compute_copy_constraints(
+    K1H: &[BigInt],
+    K2H: &[BigInt],
+    H: &[BigInt],
+    modulus: &BigInt,
+) -> (Vec<BigInt>, Vec<BigInt>, Vec<BigInt>) {
+    // Initialize sigma vectors
+    let mut sigma1 = Vec::with_capacity(4);
+    let mut sigma2 = Vec::with_capacity(4);
+    let mut sigma3 = Vec::with_capacity(4);
+
+    // Fill the first three gates
+    for i in 0..3 {
+        sigma1.push(mod_prime(&K1H[i], modulus)); // Left input from K1H
+        sigma2.push(mod_prime(&H[i], modulus)); // Right input from H
+        sigma3.push(mod_prime(&K2H[i], modulus)); // Output from K2H
+    }
+
+    // For the fourth gate, we need to specifically map the inputs/outputs
+    // The left input of gate 4 is the output of gate 1 (σ₁[0])
+    sigma1.push(mod_prime(&K2H[0], modulus)); // Connects to output of gate 1 (first element of K2H)
+    sigma2.push(mod_prime(&K2H[1], modulus)); // Connects to output of gate 2 (second element of K2H)
+    sigma3.push(mod_prime(&K2H[3], modulus)); // Specific output from the 4th position as per the tutorial
+
+    (sigma1, sigma2, sigma3)
+}
+
 fn main() {
     // SRS
     let srs = setup_srs();
@@ -102,7 +129,7 @@ fn main() {
         BigInt::from(0),
         BigInt::from(0),
         BigInt::from(0),
-        BigInt::from(0),
+        BigInt::from(1),
     ];
     let qO = vec![
         BigInt::from(-1),
@@ -194,4 +221,22 @@ fn main() {
     println!("qO: {:?}", coeffs_qO);
     println!("qM: {:?}", coeffs_qM);
     println!("qC: {:?}", coeffs_qC);
+
+    // Compute copy constraints
+    let (sigma1, sigma2, sigma3) = compute_copy_constraints(&K1H, &K2H, &H, &modulus);
+
+    println!("\nCopy Constraint Vectors:");
+    println!("σ₁: {:?}", sigma1);
+    println!("σ₂: {:?}", sigma2);
+    println!("σ₃: {:?}", sigma3);
+
+    // Interpolate the sigma vectors into polynomials
+    let coeffs_sigma1 = compute_polynomial_coefficients(&sigma1, &H, &modulus);
+    let coeffs_sigma2 = compute_polynomial_coefficients(&sigma2, &H, &modulus);
+    let coeffs_sigma3 = compute_polynomial_coefficients(&sigma3, &H, &modulus);
+
+    println!("\nCopy Constraint Polynomials [d, c, b, a] where f(x) = ax³ + bx² + cx + d:");
+    println!("Sσ₁: {:?}", coeffs_sigma1);
+    println!("Sσ₂: {:?}", coeffs_sigma2);
+    println!("Sσ₃: {:?}", coeffs_sigma3);
 }
