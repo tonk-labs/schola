@@ -1,5 +1,5 @@
 use num_bigint::BigInt;
-use week_7_arthurgousset::{mod_inverse, mod_prime, srs::setup_srs};
+use week_7_arthurgousset::{mod_inverse, mod_prime, points::Point, srs::setup_srs, srs::SrsPoint};
 
 fn compute_interpolation_matrix(domain: &[BigInt], modulus: &BigInt) -> Vec<Vec<BigInt>> {
     let n = domain.len();
@@ -110,6 +110,87 @@ fn compute_copy_constraints(
     (sigma1, sigma2, sigma3)
 }
 
+fn compute_zh_coefficients(modulus: &BigInt) -> Vec<BigInt> {
+    // ZH(x) = x^4 - 1
+    // Coefficients are [constant term, x^1 term, x^2 term, x^3 term, x^4 term]
+    vec![
+        mod_prime(&BigInt::from(-1), modulus), // -1
+        BigInt::from(0),                       // 0x
+        BigInt::from(0),                       // 0x^2
+        BigInt::from(0),                       // 0x^3
+        BigInt::from(1),                       // 1x^4
+    ]
+}
+
+fn compute_round1_polynomials(
+    coeffs_a: &[BigInt],
+    coeffs_b: &[BigInt],
+    coeffs_c: &[BigInt],
+    zh_coeffs: &[BigInt],
+    modulus: &BigInt,
+) -> (Vec<BigInt>, Vec<BigInt>, Vec<BigInt>) {
+    // Define specific constants used in the construction
+    let beta1 = BigInt::from(7); // b₁
+    let beta2 = BigInt::from(4); // b₂
+    let beta3 = BigInt::from(11); // b₃
+    let alpha1 = BigInt::from(12); // b₄
+    let alpha2 = BigInt::from(16); // b₅
+    let alpha3 = BigInt::from(2); // b₆
+
+    // Helper function to multiply Z_H(x) by (b_i * x + b_j)
+    fn apply_zh_poly(
+        zh_coeffs: &[BigInt],
+        x_coeff: &BigInt,
+        constant: &BigInt,
+        modulus: &BigInt,
+    ) -> Vec<BigInt> {
+        let mut result = vec![BigInt::from(0); zh_coeffs.len() + 1];
+        for (i, zh_coeff) in zh_coeffs.iter().enumerate() {
+            let term = mod_prime(&(zh_coeff * x_coeff), modulus);
+            result[i + 1] = mod_prime(&(result[i + 1].clone() + term), modulus);
+        }
+        result[0] = mod_prime(&(result[0].clone() + constant), modulus);
+        result
+    }
+
+    // Compute a(x) = (b₁ * x + b₂) * Z_H(x) + f_a(x)
+    let mut a_x = apply_zh_poly(zh_coeffs, &beta1, &beta2, modulus);
+    for (i, coeff) in coeffs_a.iter().enumerate() {
+        a_x[i] = mod_prime(&(a_x[i].clone() + coeff), modulus);
+    }
+
+    // Compute b(x) = (b₃ * x + b₄) * Z_H(x) + f_b(x)
+    let mut b_x = apply_zh_poly(zh_coeffs, &beta3, &alpha1, modulus);
+    for (i, coeff) in coeffs_b.iter().enumerate() {
+        b_x[i] = mod_prime(&(b_x[i].clone() + coeff), modulus);
+    }
+
+    // Compute c(x) = (b₅ * x + b₆) * Z_H(x) + f_c(x)
+    let mut c_x = apply_zh_poly(zh_coeffs, &alpha2, &alpha3, modulus);
+    for (i, coeff) in coeffs_c.iter().enumerate() {
+        c_x[i] = mod_prime(&(c_x[i].clone() + coeff), modulus);
+    }
+
+    (a_x, b_x, c_x)
+}
+
+fn evaluate_polynomial_with_srs(coeffs: &[BigInt], srs: &[SrsPoint]) -> Point {
+    let mut result = None;
+
+    // Each coefficient i should be multiplied by [s^i] from the SRS
+    for (i, coeff) in coeffs.iter().enumerate() {
+        if let SrsPoint::G1(point) = &srs[i] {
+            let scaled_point = point.scale(coeff);
+            result = match result {
+                None => Some(scaled_point),
+                Some(prev) => Some(prev.add(&scaled_point)),
+            };
+        }
+    }
+
+    result.expect("Failed to evaluate polynomial with SRS")
+}
+
 fn main() {
     // SRS
     let srs = setup_srs();
@@ -167,6 +248,15 @@ fn main() {
         BigInt::from(25),
         BigInt::from(25),
     ];
+
+    println!("\na: {:?}", a);
+    println!("b: {:?}", b);
+    println!("c: {:?}", c);
+    println!("qL: {:?}", qL);
+    println!("qR: {:?}", qR);
+    println!("qO: {:?}", qO);
+    println!("qM: {:?}", qM);
+    println!("qC: {:?}", qC);
 
     // Roots of Unity
     // We happen to know that the 4th roots of unity in F_{17} are 1, 4, 13, 16.
@@ -239,4 +329,29 @@ fn main() {
     println!("Sσ₁: {:?}", coeffs_sigma1);
     println!("Sσ₂: {:?}", coeffs_sigma2);
     println!("Sσ₃: {:?}", coeffs_sigma3);
+
+    // Round 1 of the Prover Protocol
+    println!("\nRound 1 of the Prover Protocol:");
+
+    // Compute ZH polynomial coefficients
+    let zh_coeffs = compute_zh_coefficients(&modulus);
+    println!("ZH coefficients: {:?}", zh_coeffs);
+
+    // Compute the round 1 polynomials
+    let (a_x, b_x, c_x) =
+        compute_round1_polynomials(&coeffs_a, &coeffs_b, &coeffs_c, &zh_coeffs, &modulus);
+
+    println!("a(x) coefficients: {:?}", a_x);
+    println!("b(x) coefficients: {:?}", b_x);
+    println!("c(x) coefficients: {:?}", c_x);
+
+    // Compute [a(s)], [b(s)], [c(s)] using the SRS
+    let a_s = evaluate_polynomial_with_srs(&a_x, &srs);
+    let b_s = evaluate_polynomial_with_srs(&b_x, &srs);
+    let c_s = evaluate_polynomial_with_srs(&c_x, &srs);
+
+    println!("\nRound 1 Commitments:");
+    println!("[a(s)]: {:?}", a_s);
+    println!("[b(s)]: {:?}", b_s);
+    println!("[c(s)]: {:?}", c_s);
 }
