@@ -165,11 +165,19 @@ fn compute_round1_polynomials(
         modulus: &BigInt,
     ) -> Vec<BigInt> {
         let mut result = vec![BigInt::from(0); zh_coeffs.len() + 1];
+        
+        // Multiply each term by the constant
+        for (i, zh_coeff) in zh_coeffs.iter().enumerate() {
+            let term = mod_prime(&(zh_coeff * constant), modulus);
+            result[i] = mod_prime(&(result[i].clone() + term), modulus);
+        }
+        
+        // Multiply each term by (x_coeff * x)
         for (i, zh_coeff) in zh_coeffs.iter().enumerate() {
             let term = mod_prime(&(zh_coeff * x_coeff), modulus);
             result[i + 1] = mod_prime(&(result[i + 1].clone() + term), modulus);
         }
-        result[0] = mod_prime(&(result[0].clone() + constant), modulus);
+        
         result
     }
 
