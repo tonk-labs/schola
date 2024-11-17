@@ -1,4 +1,5 @@
 use std::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
+use std::fmt;
 //using code from ronkathon here
 //https://github.com/pluto/ronkathon/blob/main/src/algebra/field/prime/mod.rs
 
@@ -15,6 +16,8 @@ pub type BaseFieldElement = FieldElement<{ ORDER as usize }>;
 impl<const P: usize> FieldElement<P> {
     pub const ONE: Self = Self { value: 1 };
     pub const ZERO: Self = Self { value: 0 };
+    pub const NEG_ONE: Self = Self { value: P - 1 };
+    pub const ORDER: usize = P;
 
     /// Creates a new `FieldElement` with the given value and modulus.
     pub fn new(value: usize) -> Self {
@@ -53,7 +56,25 @@ impl<const P: usize> FieldElement<P> {
     pub fn value(&self) -> usize {
         self.value
     }
+
+    /// Divides self by other, returning None if other is zero
+    pub fn div(self, other: Self) -> Option<Self> {
+        if other.value == 0 {
+            None
+        } else {
+            Some(self * other.inverse().unwrap())
+        }
+    }
+
 }
+
+pub fn primitive_root_of_unity<const P:usize>(n: usize) -> FieldElement<P> {
+    let p_minus_one = P - 1;
+    assert!(p_minus_one % n == 0, "n must divide p^q - 1");
+    let pow = p_minus_one / n;
+    let f = FieldElement::<P>::new(pow);
+    f.pow(pow)
+  }
 
 /// Extended Euclidean Algorithm to find the GCD and coefficients.
 fn extended_gcd(a: i64, b: i64) -> (i64, i64, i64) {
@@ -126,3 +147,7 @@ impl<const P: usize> Neg for FieldElement<P> {
     }
 }
 
+
+impl<const P: usize> fmt::Display for FieldElement<P> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.value) }
+  }

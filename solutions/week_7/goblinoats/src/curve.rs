@@ -1,6 +1,7 @@
 use super::field::*;
 use super::extension::*;
 use std::ops::Mul;
+use std::fmt;
 
 #[derive(Debug, Copy, Clone)]
 pub struct ECPoint {
@@ -14,6 +15,55 @@ pub struct ECPointExtended {
     pub x: BaseFieldExtension,
     pub y: BaseFieldExtension,
     pub infinity: bool
+}
+
+pub struct EllipticGroup {
+    pub g: ECPoint,
+    pub elements: Vec<ECPoint>,
+}
+
+impl EllipticGroup {
+    pub fn new(g: ECPoint) -> Self {
+        let mut elements = Vec::new();
+        let mut current = g;
+
+        // Add points until we cycle back to infinity
+        loop {
+            elements.push(current);
+            current = current.add(&g);
+            
+            // If we've reached the point at infinity, we've found all points
+            if current.infinity {
+                break;
+            }
+            
+            // Safety check to prevent infinite loops
+            if elements.len() > 1000 {
+                panic!("Group generation exceeded maximum size");
+            }
+        }
+
+        EllipticGroup { g, elements }
+    }
+
+    pub fn get_index(&self, point: &ECPoint) -> Option<usize> {
+        self.elements.iter()
+            .position(|p| p.x == point.x && p.y == point.y && p.infinity == point.infinity)
+    }
+}
+
+impl fmt::Display for EllipticGroup {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Group elements:")?;
+        for (i, point) in self.elements.iter().enumerate() {
+            if point.infinity {
+                writeln!(f, "{}: ∞", i)?;
+            } else {
+                writeln!(f, "{}: ({}, {})", i, point.x, point.y)?;
+            }
+        }
+        Ok(())
+    }
 }
 
 impl ECPoint {
@@ -75,8 +125,29 @@ impl ECPoint {
         ECPoint { x: x3, y: y3, infinity: false }
     }
 
+    pub fn scalar_mul(&self, rhs: usize) -> Self {
+        if rhs == 0 {
+                return ECPoint { x: BaseFieldElement::new(0), y: BaseFieldElement::new(0), infinity: true };
+        }
+        let mut val = *self;
+        for _ in 1..rhs.into() {
+            val = val.add(self)
+        }
+        val
+    }
+
     pub fn invert(&self) -> Self {
         ECPoint { x: self.x, y: BaseFieldElement::new(0) - self.y, infinity: false }
+    }
+}
+
+impl fmt::Display for ECPoint {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.infinity {
+            write!(f, "(Infinity)")
+        } else {
+            write!(f, "({}, {})", self.x, self.y)
+        }
     }
 }
 

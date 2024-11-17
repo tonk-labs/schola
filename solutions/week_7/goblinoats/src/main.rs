@@ -1,14 +1,9 @@
+#![feature(generic_const_exprs)]
+
 use oatsplonk::field::*;
 use oatsplonk::extension::*;
 use oatsplonk::curve::*;
 use oatsplonk::srs::*;
-
-// elliptic curve equation y^2 = x^3 + 3
-// generator = (1,2)
-
-// // Generator point G1 = (1, 2)
-// const G1_X: i64 = 1;
-// const G1_Y: i64 = 2;
 
 
 
@@ -34,6 +29,3 @@ fn main() {
         );
     }
 }
-
-
-

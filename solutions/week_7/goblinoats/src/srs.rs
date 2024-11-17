@@ -4,7 +4,8 @@ use super::curve::*;
 
 pub struct SRS<const P: usize> {
     pub g1_elements: Vec<ECPoint>,
-    pub g2_elements: Vec<ECPointExtended>
+    pub g2_elements: Vec<ECPointExtended>,
+    pub group: EllipticGroup
 }
 
 impl<const P: usize> SRS<P> {
@@ -34,9 +35,12 @@ impl<const P: usize> SRS<P> {
         g2_elements.push(g2);
         g2_elements.push(g2.double());
 
+        let group = EllipticGroup::new(g1);
+
         Self {
             g1_elements,
-            g2_elements
+            g2_elements,
+            group
         }
     }
 }
