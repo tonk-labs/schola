@@ -83,10 +83,23 @@ fn compute_polynomial_coefficients(
     coefficients
 }
 
+/// Copy constraints are specific to each circuit, so we need to manually compute them
+/// based on the circuit structure. It's totally fine that the assignments appear arbitrary.
+/// This is specific to the pythagorean circuit.
+///
+///       a^2     +      b^2      =    c^2
+/// 
+///  a1        b1  a2         b2  
+///   \        /     \        /     
+///    \      /       \      /       
+///     c1 = a4        c2 = b4       a3    b3
+///        \           /               \   /
+///         \         /                 \ /
+///              c4               =      c3  
 fn compute_copy_constraints(
+    H: &[BigInt],
     K1H: &[BigInt],
     K2H: &[BigInt],
-    H: &[BigInt],
     modulus: &BigInt,
 ) -> (Vec<BigInt>, Vec<BigInt>, Vec<BigInt>) {
     // Initialize sigma vectors
@@ -94,18 +107,25 @@ fn compute_copy_constraints(
     let mut sigma2 = Vec::with_capacity(4);
     let mut sigma3 = Vec::with_capacity(4);
 
-    // Fill the first three gates
+    let a = H;     // a is mapped by H
+    let b = K1H;   // b is mapped by K1H
+    let c = K2H;   // c is mapped by K2H
+
+    // For gates 1-3: connect a[i] to b[i]
     for i in 0..3 {
-        sigma1.push(mod_prime(&K1H[i], modulus)); // Left input from K1H
-        sigma2.push(mod_prime(&H[i], modulus)); // Right input from H
-        sigma3.push(mod_prime(&K2H[i], modulus)); // Output from K2H
+        sigma1.push(mod_prime(&b[i], modulus));  // a[i+1] = b[i+1]
+        sigma2.push(mod_prime(&a[i], modulus));  // b[i+1] = a[i+1]
     }
 
-    // For the fourth gate, we need to specifically map the inputs/outputs
-    // The left input of gate 4 is the output of gate 1 (σ₁[0])
-    sigma1.push(mod_prime(&K2H[0], modulus)); // Connects to output of gate 1 (first element of K2H)
-    sigma2.push(mod_prime(&K2H[1], modulus)); // Connects to output of gate 2 (second element of K2H)
-    sigma3.push(mod_prime(&K2H[3], modulus)); // Specific output from the 4th position as per the tutorial
+    // For gate 4: connect outputs to inputs
+    sigma1.push(mod_prime(&c[0], modulus));  // a[4] = c[1]
+    sigma2.push(mod_prime(&c[1], modulus));  // b[4] = c[2]
+
+    // Connect gate outputs
+    sigma3.push(mod_prime(&a[3], modulus));  // c[1] = a[4]
+    sigma3.push(mod_prime(&b[3], modulus));  // c[2] = b[4]
+    sigma3.push(mod_prime(&c[3], modulus));  // c[3] = c[4]
+    sigma3.push(mod_prime(&c[2], modulus));  // c[4] = c[3]
 
     (sigma1, sigma2, sigma3)
 }
@@ -313,7 +333,7 @@ fn main() {
     println!("qC: {:?}", coeffs_qC);
 
     // Compute copy constraints
-    let (sigma1, sigma2, sigma3) = compute_copy_constraints(&K1H, &K2H, &H, &modulus);
+    let (sigma1, sigma2, sigma3) = compute_copy_constraints(&H, &K1H, &K2H, &modulus);
 
     println!("\nCopy Constraint Vectors:");
     println!("σ₁: {:?}", sigma1);
